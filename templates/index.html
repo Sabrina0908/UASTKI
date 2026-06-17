@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STKI Wisata Indonesia</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background Ambient Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-compass-drafting brand-icon"></i>
+                <div class="brand-text">
+                    <h1>STKI Wisata</h1>
+                    <span>Sistem Temu Kembali Informasi</span>
+                </div>
+            </div>
+            
+            <nav class="app-nav">
+                <button class="nav-btn active" data-tab="search-tab">
+                    <i class="fa-solid fa-magnifying-glass"></i> Cari Wisata
+                </button>
+                <button class="nav-btn" data-tab="dataset-tab">
+                    <i class="fa-solid fa-database"></i> Jelajah Dataset
+                </button>
+                <button class="nav-btn" data-tab="eval-tab">
+                    <i class="fa-solid fa-chart-simple"></i> Evaluasi Sistem
+                </button>
+            </nav>
+            
+            <div class="header-footer">
+                <div class="badge">
+                    <span class="dot"></span> TF-IDF & Cosine Similarity
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- TAB 1: SEARCH -->
+            <section id="search-tab" class="tab-content active">
+                <div class="search-hero">
+                    <h2>Temukan Destinasi Wisata Indonesia</h2>
+                    <p>Masukkan kata kunci pencarian (misal: <em>pantai lampung</em>, <em>snorkeling</em>, <em>wisata keluarga</em>, <em>gunung bandung</em>).</p>
+                    
+                    <div class="search-box-container">
+                        <form id="search-form" class="search-form">
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+                                <input type="text" id="search-input" placeholder="Mau liburan ke mana hari ini?..." autocomplete="off" required>
+                                <button type="button" id="clear-search" class="clear-btn"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <button type="submit" class="search-submit-btn">
+                                <span>Cari</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Query Process Panel (Expansions, Preprocessing) -->
+                <div id="query-analysis-panel" class="analysis-panel hidden">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-gears"></i> Analisis Query & Pemrosesan Teks</h3>
+                        <span class="toggle-btn"><i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="analysis-grid">
+                            <div class="analysis-card">
+                                <div class="card-icon"><i class="fa-solid fa-arrows-left-right-to-line"></i></div>
+                                <h4>Query Asli</h4>
+                                <p id="original-query-text">-</p>
+                            </div>
+                            <div class="analysis-card">
+                                <div class="card-icon"><i class="fa-solid fa-expand"></i></div>
+                                <h4>Ekspansi Query</h4>
+                                <p id="expanded-query-text">-</p>
+                            </div>
+                            <div class="analysis-card">
+                                <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                                <h4>Hasil Preprocessing</h4>
+                                <p id="processed-query-text" class="processed-text">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results Section -->
+                <div class="results-section">
+                    <div class="results-header hidden" id="results-count-container">
+                        <h3>Hasil Pencarian (<span id="results-count">0</span>)</h3>
+                        <div class="sort-badge">Relevansi (Cosine Similarity)</div>
+                    </div>
+
+                    <!-- Loader -->
+                    <div class="loader-container hidden" id="search-loader">
+                        <div class="loader-spinner"></div>
+                        <p>Memproses query dan menghitung kesamaan dokumen...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="search-empty-state">
+                        <div class="empty-icon"><i class="fa-regular fa-compass"></i></div>
+                        <h3>Mulai Pencarian Anda</h3>
+                        <p>Hasil pencarian berdasarkan relevansi TF-IDF dan Cosine Similarity akan muncul di sini.</p>
+                    </div>
+
+                    <!-- Cards Grid -->
+                    <div class="results-grid" id="search-results-grid"></div>
+                </div>
+            </section>
+
+            <!-- TAB 2: DATASET EXPLORER -->
+            <section id="dataset-tab" class="tab-content">
+                <div class="section-title-wrapper">
+                    <div>
+                        <h2>Eksplorasi Dataset Parawisata</h2>
+                        <p>Telusuri seluruh destinasi pariwisata yang terdaftar dalam sistem informasi kami.</p>
+                    </div>
+                    <div class="dataset-stats">
+                        <span class="stat-badge"><i class="fa-solid fa-file-csv"></i> <span id="total-dataset-count">0</span> Destinasi</span>
+                    </div>
+                </div>
+
+                <!-- Filters panel -->
+                <div class="filter-panel">
+                    <div class="search-filter-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="dataset-search" placeholder="Cari nama, kota, atau deskripsi...">
+                    </div>
+                    <div class="select-filter-wrapper">
+                        <i class="fa-solid fa-filter"></i>
+                        <select id="dataset-category-filter">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="table-container-glass">
+                    <!-- Table Loader -->
+                    <div class="loader-container hidden" id="table-loader">
+                        <div class="loader-spinner"></div>
+                        <p>Memuat data wisata...</p>
+                    </div>
+
+                    <table class="dataset-table" id="dataset-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%">No</th>
+                                <th style="width: 20%">Nama Wisata</th>
+                                <th style="width: 15%">Kategori</th>
+                                <th style="width: 20%">Lokasi (Kota & Provinsi)</th>
+                                <th style="width: 40%">Deskripsi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataset-table-body">
+                            <!-- Data rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <span class="pagination-info">Menampilkan halaman <span id="current-page">1</span> dari <span id="total-pages">1</span></span>
+                    <div class="pagination-buttons">
+                        <button id="prev-page-btn" class="page-btn" disabled><i class="fa-solid fa-chevron-left"></i> Sebelum</button>
+                        <button id="next-page-btn" class="page-btn" disabled>Berikut <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: EVALUATION -->
+            <section id="eval-tab" class="tab-content">
+                <div class="section-title-wrapper">
+                    <div>
+                        <h2>Evaluasi Sistem Temu Kembali</h2>
+                        <p>Analisis akurasi hasil pencarian menggunakan metrik <strong>Precision@K</strong> untuk beberapa query pengujian standar.</p>
+                    </div>
+                    <button id="run-eval-btn" class="eval-action-btn">
+                        <i class="fa-solid fa-play"></i> Jalankan Evaluasi
+                    </button>
+                </div>
+
+                <!-- Summary Overview -->
+                <div class="eval-summary-grid hidden" id="eval-summary-grid">
+                    <div class="metric-card">
+                        <h3>Precision@3</h3>
+                        <div class="metric-value" id="avg-p3">0.00</div>
+                        <p>Rata-rata presisi pada 3 dokumen teratas</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Precision@5</h3>
+                        <div class="metric-value" id="avg-p5">0.00</div>
+                        <p>Rata-rata presisi pada 5 dokumen teratas</p>
+                    </div>
+                    <div class="metric-card accent">
+                        <h3>Precision@10</h3>
+                        <div class="metric-value" id="avg-p10">0.00</div>
+                        <p>Rata-rata presisi pada 10 dokumen teratas</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="eval-details-container hidden" id="eval-details-container">
+                    <h3>Hasil Evaluasi per Query</h3>
+                    
+                    <div class="eval-layout">
+                        <!-- Left: Table of Queries -->
+                        <div class="eval-queries-table-wrapper">
+                            <table class="eval-table">
+                                <thead>
+                                    <tr>
+                                        <th>Query Pengujian</th>
+                                        <th class="center">P@3</th>
+                                        <th class="center">P@5</th>
+                                        <th class="center">P@10</th>
+                                        <th class="right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eval-table-body">
+                                    <!-- Injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Right: Detailed retrieved doc checking -->
+                        <div class="eval-doc-inspector" id="eval-doc-inspector">
+                            <div class="inspector-empty">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <p>Pilih query di sebelah kiri untuk melihat daftar dokumen yang berhasil di-retrieve beserta evaluasi relevansinya.</p>
+                            </div>
+                            <div class="inspector-content hidden" id="inspector-content">
+                                <div class="inspector-header">
+                                    <h4 id="inspector-query-title">Query: -</h4>
+                                    <span class="badge" id="inspector-query-p10">P@10: 0.0</span>
+                                </div>
+                                <div class="inspector-truth">
+                                    <strong>Ground Truth (Target):</strong>
+                                    <div class="truth-tags" id="inspector-truth-tags"></div>
+                                </div>
+                                <div class="inspector-list-wrapper">
+                                    <h5>Daftar Hasil Terbaca (Retrieved)</h5>
+                                    <ol class="retrieved-list" id="inspector-retrieved-list"></ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state for evaluation -->
+                <div class="empty-state" id="eval-empty-state">
+                    <div class="empty-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    <h3>Siap Melakukan Pengujian</h3>
+                    <p>Klik tombol <strong>Jalankan Evaluasi</strong> untuk memulai komputasi Precision@K dan memeriksa hasil temu kembali dokumen.</p>
+                </div>
+
+                <!-- Eval Loader -->
+                <div class="loader-container hidden" id="eval-loader">
+                    <div class="loader-spinner"></div>
+                    <p>Menjalankan query evaluasi pada TF-IDF Vectorizer dan menghitung presisi...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
