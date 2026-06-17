@@ -5,19 +5,26 @@ import numpy as np
 import nltk
 from flask import Flask, request, jsonify, render_template
 
-# Ensure NLTK data is downloaded
+# Define writable NLTK data directory inside the app folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+nltk_data_dir = os.path.join(BASE_DIR, "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+if nltk_data_dir not in nltk.data.path:
+    nltk.data.path.append(nltk_data_dir)
+
+# Ensure NLTK data is downloaded to custom directory
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
-    nltk.download('punkt', quiet=True)
+    nltk.download('punkt', download_dir=nltk_data_dir, quiet=True)
 try:
     nltk.data.find('tokenizers/punkt_tab')
 except LookupError:
-    nltk.download('punkt_tab', quiet=True)
+    nltk.download('punkt_tab', download_dir=nltk_data_dir, quiet=True)
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
-    nltk.download('stopwords', quiet=True)
+    nltk.download('stopwords', download_dir=nltk_data_dir, quiet=True)
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
@@ -27,9 +34,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
 
-# Constants
-DATASET_PATH = "wisata_indonesia_final.csv"
-CLEAN_DATASET_PATH = "wisata_indonesia_clean.csv"
+# Constants (using absolute paths relative to BASE_DIR)
+DATASET_PATH = os.path.join(BASE_DIR, "wisata_indonesia_final.csv")
+CLEAN_DATASET_PATH = os.path.join(BASE_DIR, "wisata_indonesia_clean.csv")
 
 # Global Variables
 df = None
